@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"time"
-
+	 "html/template"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -80,8 +80,18 @@ func main() {
 		if err := cursor.All(c.Context(), &employees); err != nil {
 			return c.Status(500).SendString(err.Error())
 		}
+		
+		c.JSON(employees)
 
-		return c.JSON(employees)
+        // Renderizar o template HTML
+        tmpl, err := template.ParseFiles("employee_list.html")
+        if err != nil {
+            return c.Status(500).SendString(err.Error())
+        }
+
+        // Enviar a resposta HTML renderizada
+        c.Set("Content-Type", "text/html")
+        return tmpl.Execute(c.Response().BodyWriter(), employees)
 	})
 
 	app.Post("/employee", func(c *fiber.Ctx) error {
